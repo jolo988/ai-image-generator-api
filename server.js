@@ -137,26 +137,26 @@ app.put('/image', (req, res) => {
 
 });
 
-// var bcrypt = require('bcryptjs');
-// bcrypt.genSalt(10, function(err, salt) {
-//     bcrypt.hash("B4c0/\/", salt, function(err, hash) {
-//         // Store hash in your password DB.
-//     });
-// });
+//API call to retrieve image
+app.post('/imageURL', (req, res) => {
+    const prompt = req.body.input;
+    openai.createImage({
+        prompt,
+        n: 1,
+    })
+    .then((aiResponse) => {
+        const image = aiResponse.data.data[0].url;
+        res.send({ image })
+    })
+    .catch((err) => {
+        console.log(err);
+        res.status(500).send('Server error')
+    });
+});
 
-// // Load hash from your password DB.
-// bcrypt.compare("B4c0/\/", hash, function(err, res) {
-//     // res === true
-// });
-// bcrypt.compare("not_bacon", hash, function(err, res) {
-//     // res === false
-// });
 
-// // As of bcryptjs 2.4.0, compare returns a promise if callback is omitted:
-// bcrypt.compare("B4c0/\/", hash).then((res) => {
-//     // res === true
-// });
 
+//host on server #
 app.listen(8081, () => {
     console.log('app is running on port 8081')
 });
