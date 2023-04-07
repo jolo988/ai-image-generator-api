@@ -146,7 +146,7 @@ app.post('/imageURL', (req, res) => {
     })
     .then((aiResponse) => {
         const image = aiResponse.data.data[0].url;
-        res.send({ image })
+        res.json({ image })
     })
     .catch((err) => {
         console.log(err);
