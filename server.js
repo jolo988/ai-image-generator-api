@@ -2,21 +2,21 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const knex = require('knex');
-const { Configuration, OpenAIApi } = require('openai');
-const dotenv = require('dotenv');
-dotenv.config();
+// const { Configuration, OpenAIApi } = require('openai');
+// const dotenv = require('dotenv');
+// dotenv.config();
 
 const register = require('./controllers/register');
 const signin = require('./controllers/signin')
 const profile = require('./controllers/profile')
 const image = require('./controllers/image')
 
-//hide API key
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI,
-});
+// //hide API key
+// const configuration = new Configuration({
+//     apiKey: process.env.OPENAI,
+// });
 
-const openai = new OpenAIApi(configuration);
+// const openai = new OpenAIApi(configuration);
 const app = express();
 
 //connect to localhost database
@@ -54,21 +54,7 @@ app.get('/profile/:id', (req, res) => { profile.handleProfileGet(req, res, db) }
 app.put('/image', (req, res) => { image.handleImage(req, res, db) });
 
 //API call to retrieve image
-app.post('/imagePrompt', (req, res) => {
-    const prompt = req.body.input;
-    openai.createImage({
-        prompt,
-        n: 1,
-    })
-    .then((aiResponse) => {
-        const image = aiResponse.data.data[0].url;
-        res.json({ image })
-    })
-    .catch((err) => {
-        console.log(err);
-        res.status(500).send('Server error')
-    });
-});
+app.post('/imagePrompt', (req, res) => { image.handleApiCall(req, res) });
 
 
 
