@@ -54,7 +54,7 @@ app.get('/profile/:id', (req, res) => { profile.handleProfileGet(req, res, db) }
 app.put('/image', (req, res) => { image.handleImage(req, res, db) });
 
 //API call to retrieve image
-app.post('/imageURL', (req, res) => {
+app.post('/imagePrompt', (req, res) => {
     const prompt = req.body.input;
     openai.createImage({
         prompt,
