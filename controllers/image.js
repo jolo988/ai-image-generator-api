@@ -1,20 +1,29 @@
-// const { Configuration, OpenAIApi } = require('openai');
+const { Configuration, OpenAIApi } = require('openai');
+const dotenv = require('dotenv');
+dotenv.config();
 
-// const handleApiCall = (req, res) => {
-//     const prompt = req.body.input;
-//     openai.createImage({
-//         prompt,
-//         n: 1,
-//     })
-//     .then((aiResponse) => {
-//         const image = aiResponse.data.data[0].url;
-//         res.json({ image })
-//     })
-//     .catch((err) => {
-//         console.log(err);
-//         res.status(500).send('Server error')
-//     });
-// }
+//hide API key
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI,
+});
+
+const openai = new OpenAIApi(configuration);
+
+const handleApiCall = (req, res) => {
+    const prompt = req.body.input;
+    openai.createImage({
+        prompt,
+        n: 1,
+    })
+    .then((aiResponse) => {
+        const image = aiResponse.data.data[0].url;
+        res.json({ image })
+    })
+    .catch((err) => {
+        console.log(err);
+        res.status(500).send('Server error')
+    });
+}
 
 //for every image submitted in frontend -> hit this route -> increase counter when submitting image
 //find user ID to update entries (receiving from body instead of params)
@@ -33,4 +42,5 @@ const handleImage = (req, res, db) => {
 
 module.exports = {
     handleImage,
+    handleApiCall
 }
