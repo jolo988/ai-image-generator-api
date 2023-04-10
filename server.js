@@ -6,6 +6,11 @@ const { Configuration, OpenAIApi } = require('openai');
 const dotenv = require('dotenv');
 dotenv.config();
 
+const register = require('./controllers/register');
+const signin = require('./controllers/signin')
+const profile = require('./controllers/profile')
+const image = require('./controllers/image')
+
 //hide API key
 const configuration = new Configuration({
     apiKey: process.env.OPENAI,
@@ -36,106 +41,17 @@ app.get('/', (req, res) => {
 });
 
 //need to receive from frontend body via HTTPS
-app.post('/signin', (req, res) => {
-    const { email, password } = req.body
-    if (!email || !password) {
-        return res.status(400).json('Incorrect form submission')
-    }
-    db.select('email', 'hash')
-    .from('login')
-    .where('email', '=', email)
-    .then(data => {
-        const isValid = bcrypt.compareSync(password, data[0].hash);
-        if (isValid) {
-            return db.select('*').from('users')
-            .where('email', '=', email)
-            .then(user => {
-                res.json(user[0])
-            })
-            .catch(err => res.status(400).json('Unable to get user'))
-        } else {
-            res.status(400).json('Wrong credentials')
-        }
-    })
-    .catch(err => res.status(400).json('Wrong credentials'))
-    // bcrypt.compareSync("not_bacon", hash); // false})
-     
-});
+app.post('/signin', (req, res) => { signin.handleSignin(req, res, db, bcrypt) });
 
 //grab req.body -> enter new info to database
-app.post('/register', (req, res) => {
-    //pulling specific values from request body
-    const { name, email, password } = req.body;
-    //if there's missing fields -> won't process registration
-    //Need return to end execution and not continue app.post
-    if (!name || !email || !password) {
-        return res.status(400).json('Incorrect form submission');//need return to end function if it gets returned
-    }
-    
+//pass params req,res,db,bcrypt to handleregister to use, instead of importing to register.js
+app.post('/register', (req, res) => { register.handleRegister(req, res, db, bcrypt) });
 
-    // bcrypt Usage - Sync method: 
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
 
-    //transaction wraps sql 'users' + 'login' tables(both to update or fail so tables don't update without one another)
-        db.transaction(trx => {
-            trx.insert({
-                hash: hash,
-                email: email
-            })
-            .into('login')
-            .returning('email')
-            .then(loginEmail => {
-                return trx('users')
-        //returning all columns response of registered user
-                .returning('*')
-                .insert({
-                    name: name,
-                    email: loginEmail[0].email,
-                    joined: new Date() 
-                })
-            //if successful -> send response of/return object of registered user
-                .then(user => {
-                    res.json(user[0]);
-                })
-            })
-            .then(trx.commit)//commit changes (add) to DB tables if all matches
-            .catch(trx.rollback)//if anything fails -> rollback changes
-        })    
-        
-        .catch(err => res.status(400).json('Unable to register'))
-});
+app.get('/profile/:id', (req, res) => { profile.handleProfileGet(req, res, db) });
 
-//Get param ID. loop through users database -> find matching ID
-//if user id = id in server params -> return user id
-//**can't set headers after they're sent -> loops and callbacks that run 2+ times will try to re-set headers */
-//Can do map or filter or find() to find user w/ ID 
-//if length >1 -> return user
-app.get('/profile/:id', (req, res) => {
-    const { id } = req.params;
-    db.select('*').from('users').where({id})
-        .then(user => {
-            if (user.length) {
-                res.json(user[0])
-            } else {
-                res.status(400).json('Username not found')
-            }
-        })
-});
-
-//for every image submitted in frontend -> hit this route -> increase counter when submitting image
-//find user ID to update entries (receiving from body instead of params)
-//if found -> res w/ user.entries + increase
-//if ID in DB = id found in body ->
-app.put('/image', (req, res) => {
-    const { id } = req.body;
-    db('users').where('id', '=', id)
-    .increment('entries', 1)
-    .returning('entries')
-    .then(entries => {res.json(entries[0].entries)})
-    .catch(err => res.status(400).json('Unable to update entries'))
-
-});
+//Counter
+app.put('/image', (req, res) => { image.handleImage(req, res, db) });
 
 //API call to retrieve image
 app.post('/imageURL', (req, res) => {
@@ -153,6 +69,8 @@ app.post('/imageURL', (req, res) => {
         res.status(500).send('Server error')
     });
 });
+
+
 
 //host on server #
 app.listen(8081, () => {
