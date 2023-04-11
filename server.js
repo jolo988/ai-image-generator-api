@@ -49,6 +49,6 @@ app.put('/image', (req, res) => { image.handleImage(req, res, db) });
 app.post('/imagePrompt', (req, res) => { image.handleApiCall(req, res) });
 
 //host on server #
-app.listen(process.env.PORT || 8081, () => {
+app.listen(process.env.PORT || 8080, () => {
     console.log(`app is running on port ${process.env.PORT}`)
 });
