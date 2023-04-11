@@ -13,7 +13,6 @@ const handleProfileGet = async (req, res, db) => {
 }
 
 
-
 // const handleProfileGet = (req, res, db) => {
 //     const { id } = req.params;
 //     db.select('*').from('users').where({id})
