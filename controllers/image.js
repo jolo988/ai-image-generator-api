@@ -16,6 +16,7 @@ const handleApiCall = async (req, res) => {
         const aiResponse = await openai.createImage({
             prompt,
             n: 1,
+            size: '1024x1024',
         });
 
         const image = aiResponse.data.data[0].url;
